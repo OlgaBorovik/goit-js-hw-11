@@ -1,24 +1,52 @@
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import ImagesApiService from './api-service';
 
 const axios = require('axios')
 
 const searchForm = document.querySelector(".search-form")
+const gallery = document.querySelector(".gallery")
 
 searchForm.addEventListener('submit', onSearch)
 
-async function onSearch(e) {
+const imagesApiService = new ImagesApiService()
+
+function onSearch(e) {
     e.preventDefault();
-    const searchQuery = e.currentTarget.elements.searchQuery.value
-        try {
-            const response = await axios.get(`https://pixabay.com/api/?key=29953966-c475d5dff4ed5a25f1b37ba96&q=${searchQuery}&image_type=photo&
-            orientation=horizontal&safesearch=true&keys=webformatURL,largeImageURL,tags,likes,views,comments,downloads`)
-            console.log(response)
-        } catch (error) {
-            console.error(error);
-        }
+    imagesApiService.searchQuery = e.currentTarget.elements.searchQuery.value
+    imagesApiService.fetchImages()
+        .then(images => {
+            console.log(images)
+            return images
+        })
+        .then(images => {
+            // console.log(renderMarkup)
+            return renderMarkup(images)
+        })
     }
 
-
+function renderMarkup(images) {
+    const { webformatURL, tags, likes, views, comments, downloads } = images;
+    const markUp = images.map((image) => 
+    `<div class="photo-card">
+  <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+  <div class="info"
+    <p class="info-item">
+      <b>Likes: ${likes}</b>
+    </p>
+    <p class="info-item">
+      <b>Views: ${views}</b>
+    </p>
+    <p class="info-item">
+      <b>Comments: ${comments}</b>
+    </p>
+    <p class="info-item">
+      <b>Downloads: ${downloads}</b>
+    </p>
+  </div>
+</div>`).join("")
+        
+    gallery.insertAdjacentHTML('afterend', markUp)
+}
 //webformatURL - посилання на маленьке зображення для списку карток.
 // largeImageURL - посилання на велике зображення.
 // tags - рядок з описом зображення. Підійде для атрибуту alt.
