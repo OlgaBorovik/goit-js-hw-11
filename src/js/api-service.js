@@ -3,8 +3,8 @@ import axios from "axios";
 export default class ImagesApiService {
     constructor() {
         this.searchQuery = '';
-        this.page = 1
-        this.perpage = 40
+        this.page = 1;
+        this.perpage = 40;
     }
 
     async fetchImages() {
@@ -12,9 +12,9 @@ export default class ImagesApiService {
             const response = await axios.get(`https://pixabay.com/api/?key=29953966-c475d5dff4ed5a25f1b37ba96&q=${this.searchQuery}&image_type=photo&
             orientation=horizontal&safesearch=true&page=${this.page}&per_page=${this.perpage}`)
             // console.log(response)
-            this.incrementPage()
-            const data = response.data
             
+            const data = response.data
+            this.page += 1
             // console.log(data)
             return data
 
@@ -23,9 +23,9 @@ export default class ImagesApiService {
         }
         
     }
-    incrementPage(){
-        this.page += 1
-    }
+    // incrementPage(){
+    //     this.page += 1
+    // }
 
     resetPage() {
         this.page = 1
