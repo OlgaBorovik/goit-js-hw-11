@@ -14,8 +14,6 @@ const imagesApiService = new ImagesApiService()
 
 const perPage = imagesApiService.perpage
 
-
-
 function onSearch(e) {
   e.preventDefault();
   imagesApiService.searchQuery = e.currentTarget.elements.searchQuery.value
@@ -23,7 +21,7 @@ function onSearch(e) {
   if (imagesApiService.searchQuery === '') {
     return Notify.failure("Sorry, search request can't be empty.")
   }
-  // console.log(imagesApiService.searchQuery)
+  
     clearImagesGallery()
     imagesApiService.resetPage()
     imagesApiService.fetchImages()
@@ -32,12 +30,11 @@ function onSearch(e) {
         if (totalHits === 0) {
           Notify.failure('Sorry, there are no images matching your search query. Please try again.')
         } else {Notify.info(`Hooray! We found ${totalHits} images.`)}
-        // console.log(totalHits)
+       
         return data.hits
       })
       .then(images => {
         console.log(images)
-        // console.log("currentPage", currentPage)
         return renderMarkup(images)
         
       })
@@ -49,9 +46,7 @@ function onLoadMore() {
     .then(data => {
       const totalHits = data.totalHits
       const currentPage = imagesApiService.page
-      // const pagesAmount = Math.ceil(totalHits / perPage)
-      
-      console.log("currentPage", currentPage)
+       // console.log("currentPage", currentPage)
       if (totalHits < (currentPage - 1) * perPage) {
         loadMoreBtn.classList.add('is-hidden')
         Notify.warning("We're sorry, but you've reached the end of search results.")
