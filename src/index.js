@@ -1,56 +1,67 @@
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import ImagesApiService from './api-service';
-
-const axios = require('axios')
+import ImagesApiService from './js/api-service';
+import { renderMarkup } from './js/rendering';
 
 const searchForm = document.querySelector(".search-form")
+const loadMoreBtn = document.querySelector(".load-more")
 const gallery = document.querySelector(".gallery")
 
+
 searchForm.addEventListener('submit', onSearch)
+loadMoreBtn.addEventListener('click', onLoadMore)
 
 const imagesApiService = new ImagesApiService()
 
+const perPage = imagesApiService.perpage
+const currentPage = imagesApiService.page
+
+
 function onSearch(e) {
-    e.preventDefault();
-    imagesApiService.searchQuery = e.currentTarget.elements.searchQuery.value
+  e.preventDefault();
+  imagesApiService.searchQuery = e.currentTarget.elements.searchQuery.value
+  
+  if (imagesApiService.searchQuery === '') {
+    return Notify.info("Sorry, search request can't be empty.")
+  }
+  // console.log(imagesApiService.searchQuery)
+    clearImagesGallery()
+    imagesApiService.resetPage()
     imagesApiService.fetchImages()
-        .then(images => {
-            console.log(images)
-            return images
-        })
-        .then(images => {
-            // console.log(renderMarkup)
-            return renderMarkup(images)
-        })
+      .then(data => {
+        const totalHits = data.totalHits
+        if (totalHits === 0) {
+          Notify.info('Sorry, there are no images matching your search query. Please try again.')
+        } else {Notify.info(`Hooray! We found ${totalHits} images.`)}
+        // console.log(totalHits)
+        return data.hits
+      })
+      .then(images => {
+        console.log(images)
+        console.log("currentPage", currentPage)
+        return renderMarkup(images)
+        
+      })
+    loadMoreBtn.classList.remove('is-hidden')
     }
 
-function renderMarkup(images) {
-    const { webformatURL, tags, likes, views, comments, downloads } = images;
-    const markUp = images.map((image) => 
-    `<div class="photo-card">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-  <div class="info"
-    <p class="info-item">
-      <b>Likes: ${likes}</b>
-    </p>
-    <p class="info-item">
-      <b>Views: ${views}</b>
-    </p>
-    <p class="info-item">
-      <b>Comments: ${comments}</b>
-    </p>
-    <p class="info-item">
-      <b>Downloads: ${downloads}</b>
-    </p>
-  </div>
-</div>`).join("")
-        
-    gallery.insertAdjacentHTML('afterend', markUp)
+function onLoadMore() {
+  imagesApiService.fetchImages()
+    .then(data => {
+      const totalHits = data.totalHits
+      const pagesAmount = Math.ceil(totalHits / perPage)
+      
+      console.log("currentPage", currentPage, "pagesAmount", pagesAmount)
+      if (currentPage > pagesAmount) {
+        loadMoreBtn.classList.add('is-hidden')
+        Notify.info("We're sorry, but you've reached the end of search results.")
+      }
+        return data.hits
+        })
+        .then(images => {
+          return renderMarkup(images)
+        })
 }
-//webformatURL - посилання на маленьке зображення для списку карток.
-// largeImageURL - посилання на велике зображення.
-// tags - рядок з описом зображення. Підійде для атрибуту alt.
-// likes - кількість лайків.
-// views - кількість переглядів.
-// comments - кількість коментарів.
-// downloads - кількість завантажень.
+
+function clearImagesGallery() {
+  gallery.innerHTML = ""
+}
